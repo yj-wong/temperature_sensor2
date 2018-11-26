@@ -1,9 +1,21 @@
-char setDir(char *dir, char *device) {
-  char dir1[] = "/sys/bus/w1/devices/";
+#include <sys/types.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+char *setDir(char dir[], char *device) {
+	char dir1[] = "/sys/bus/w1/devices/";
 	char dir2[] = "/w1_slave";
   strcat(dir, dir1);
   strcat(dir, device);
 	strcat(dir, dir2);
+
+	printf("%p\n", &dir);
+
+
   return dir;
 }
 
@@ -41,13 +53,17 @@ int readSensor(char dir[]) {
 	return t;
 }
 
+void usage() {
+
+}
+
 void tempread(char *device, int verbose) {
-  t = readSensor(device);
+ 	int t = readSensor(device);
   printf("%d", t);
 }
 
 int main(int argc, char *argv[]) {
-  char *dir[100];
+  char dir[100];
   char *device = "28-03184177f1ff";
   int verbose = 0;
 
@@ -67,6 +83,8 @@ int main(int argc, char *argv[]) {
     argc--; argv++;
   }
 
-  dir = setDir(dir, device);
-  tempread(device, verbose);
-  exit(0);
+	dir = *setDir(dir, device);
+  printf("%s\n", setDir(dir, device));
+  tempread(dir, verbose);
+  return 0;
+}
