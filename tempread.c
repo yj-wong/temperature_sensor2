@@ -6,20 +6,29 @@
 #include <stdlib.h>
 #include <math.h>
 
-char *setDir(char dir[], char *device) {
-	char dir1[] = "/sys/bus/w1/devices/";
-	char dir2[] = "/w1_slave";
-  strcat(dir, dir1);
-  strcat(dir, device);
-	strcat(dir, dir2);
+char dir[44];
 
-	printf("%p\n", &dir);
-
-
-  return dir;
+void printChar(char *str) {
+	int i;
+	for (i = 0; i < strlen(str); i++) {
+		printf("%c ", str[i]);
+	}
+	for (i = 0; i < strlen(str); i++) {
+		printf("%d ", str[i]);
+	}
+	printf("\n");
 }
 
-int readSensor(char dir[]) {
+void *setDir(char *device) {
+	char dir1[] = "/sys/bus/w1/devices/";
+	char dir2[] = "/w1_slave";
+
+	strcat(dir, dir1);
+	strcat(dir, device);
+	strcat(dir, dir2);
+}
+
+int readSensor() {
 	FILE *fd;
 	int n;
 	char buf[101];
@@ -30,12 +39,12 @@ int readSensor(char dir[]) {
 
 	if (fd  == (FILE *)NULL) {
  		perror("Temperature sensor cannot be found");
-		(void) exit(1);
- 	}
+ 		exit(1);
+	}
 	n = fread(buf, 1, 100, fd);
  	if(n == 0) {
  		perror("Read fails!");
- 		exit(1);
+		exit(1);
  	}
  	buf[n] = '\0';
 	/*
@@ -57,13 +66,12 @@ void usage() {
 
 }
 
-void tempread(char *device, int verbose) {
- 	int t = readSensor(device);
-  printf("%d", t);
+void tempread(int verbose) {
+ 	int t = readSensor();
+	printf("%d\n", t);
 }
 
 int main(int argc, char *argv[]) {
-  char dir[100];
   char *device = "28-03184177f1ff";
   int verbose = 0;
 
@@ -83,8 +91,7 @@ int main(int argc, char *argv[]) {
     argc--; argv++;
   }
 
-	dir = *setDir(dir, device);
-  printf("%s\n", setDir(dir, device));
-  tempread(dir, verbose);
+	setDir(device);
+  tempread(verbose);
   return 0;
 }
