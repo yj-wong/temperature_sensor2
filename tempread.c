@@ -8,18 +8,7 @@
 
 char dir[44];
 
-void printChar(char *str) {
-	int i;
-	for (i = 0; i < strlen(str); i++) {
-		printf("%c ", str[i]);
-	}
-	for (i = 0; i < strlen(str); i++) {
-		printf("%d ", str[i]);
-	}
-	printf("\n");
-}
-
-void *setDir(char *device) {
+void setDir(char *dir, char *device) {
 	char dir1[] = "/sys/bus/w1/devices/";
 	char dir2[] = "/w1_slave";
 
@@ -28,7 +17,7 @@ void *setDir(char *device) {
 	strcat(dir, dir2);
 }
 
-int readSensor() {
+int readSensor(char *dir, int verbose) {
 	FILE *fd;
 	int n;
 	char buf[101];
@@ -47,9 +36,10 @@ int readSensor() {
 		exit(1);
  	}
  	buf[n] = '\0';
-	/*
- 	fprintf(stdout, "Read '%s'\n", buf);
-	*/
+
+	if (verbose == 1) {
+ 		fprintf(stdout, "Read '%s'\n", buf);
+	}
 	for (i = 0; i < 5; i++) {
 		char nChar = buf[n-6 + i];
 		int num = nChar - '0';
@@ -59,39 +49,43 @@ int readSensor() {
 
  	(void) fclose(fd);
 
+	printf("%d\n", t);
 	return t;
 }
 
 void usage() {
-
+	printf("Usage: program -d device_serial_number\n");
+	printf("Usage: program -v\n");
+	printf("Usage: program\n");
 }
 
-void tempread(int verbose) {
- 	int t = readSensor();
-	printf("%d\n", t);
+void processArg(int *argc, char *argv[], char **device, int *verbose) {
+	*argc = *argc - 1; argv++;
+
+	while(*argc > 0) {
+		printf("%d %s\n", *argc, argv[0]);
+		if(!strcmp("-v", argv[0])) {
+    		*verbose = 1;
+    } else if(!strcmp("-d", argv[0])) {
+        if(argc == 0) {
+        	usage();
+				}
+        *argc = *argc - 1; argv++;
+        *device = argv[0];
+		} else {
+      	usage();
+		}
+    *argc = *argc - 1; argv++;
+  }
 }
 
 int main(int argc, char *argv[]) {
-  char *device = "28-03184177f1ff";
-  int verbose = 0;
+	char *device = "28-03184177f1ff";
+	int verbose;
 
-  /* process the arguments */
-  argc--; argv++;
-  while(argc > 0) {
-    printf("%d %s\n", argc, argv[0]);
-    if(!strcmp("-v", argv[0])) {
-      verbose = 1;
-    } else if(!strcmp("-d", argv[0])) {
-        if(argc == 0)
-        usage();
-        argc--; argv++;
-        device = argv[0];
-    } else
-      usage();
-    argc--; argv++;
-  }
-
-	setDir(device);
-  tempread(verbose);
+	/* process the arguments */
+	processArg(&argc, argv, &device, &verbose);
+	setDir(dir, device);
+	readSensor(dir, verbose);
   return 0;
 }
